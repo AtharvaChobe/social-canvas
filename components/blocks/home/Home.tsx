@@ -18,32 +18,29 @@ import {
 } from "@/components/ui/select"
 import toast from "react-hot-toast";
 
+interface ContainerData {
+  author?: {
+    name: string;
+    image: string;
+    blue_verified: boolean;
+    screen_name: string;
+  };
+  text?: string;
+  media?: {
+    photo?: { media_url_https: string }[];
+    video?: { media_url_https: string }[];
+  };
+  likes?: number;
+  replies?: number;
+  created_at?: string;
+}
+
 
 export default function Tweet() {
 
   const [tweetUrl, settweetUrl] = useState('');
-  const [container, setcontainer] = useState({});
+  const [container, setcontainer] = useState<ContainerData>({});
   let id;
-
-  // useEffect(() => {
-  //   if (container !== null) {
-      
-  //     console.log(container);
-  //   }
-  // }, [container]);
-
-  // get id from url
-  // ( () =>{
-  //   id = extract(tweetUrl);
-  //   console.log(id);
-  // })();
-
-  //  get data from id
-  // (async () => {
-  //   const result = await fetchData(id);
-  //   console.log(result);
-  //   setcontainer(result)
-  // })();
 
   const getData = async () => {
     if(tweetUrl == ""){
@@ -88,9 +85,14 @@ export default function Tweet() {
     }
   };
 
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   const htmlToImageConvert = () => {
+    if (!ref.current) {
+      console.error("Ref is not yet initialized");
+      return;
+    }
+  
     toPng(ref.current, { cacheBust: false })
       .then((dataUrl) => {
         toast('Processing...just a sec', {
@@ -103,9 +105,10 @@ export default function Tweet() {
         toast.success('Download Complete!')
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
       });
   };
+  
 
 
 
@@ -206,13 +209,13 @@ export default function Tweet() {
                 </div>
               )}
 
-              <div className="border-b-2 w-full">
+              <div className="border-b-2 w-full mt-4">
                 <p className="text-sm text-gray-700 m-0 pb-3">{container.created_at ? container.created_at.split("+")[0] : "3:21 PM - 4 Dec, 2023"}</p>
               </div>
 
               <hr />
 
-              <div className="flex gap-5 mt-2">
+              <div className="flex gap-5 mt-4">
                 <div className="flex gap-2">
                   <CiHeart className="text-md font-bold" /> {container.likes ? formatNumber(container.likes) : "34K"}
                 </div>
