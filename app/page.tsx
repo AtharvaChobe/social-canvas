@@ -1,9 +1,12 @@
+import Tweet from '@/components/blocks/home/Home'
 import React from 'react'
 
 
 const page = () => {
   return (
-    <div>page</div>
+    <div>
+      <Tweet/>
+    </div>
   )
 }
 

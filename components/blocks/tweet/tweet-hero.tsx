@@ -26,7 +26,7 @@ const Tweet_hero = () => {
 
 
         <div className="flex flex-col items-center justify-center h-[50vh]  ">
-            <p className="text-neutral-600 dark:text-neutral-200 text-xs sm:text-base  ">
+            <p className="text-neutral-600 mt-12 dark:text-neutral-200 text-xs sm:text-base  ">
                 Increase your reach
             </p>
             <TypewriterEffectSmooth words={words} />

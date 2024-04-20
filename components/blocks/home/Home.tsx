@@ -19,7 +19,7 @@ import {
 import toast from "react-hot-toast";
 
 
-export default function page() {
+export default function Tweet() {
 
   const [tweetUrl, settweetUrl] = useState('');
   const [container, setcontainer] = useState({});
