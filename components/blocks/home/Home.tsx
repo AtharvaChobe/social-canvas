@@ -250,6 +250,7 @@ export default function Tweet() {
           </div>
 
 
+
           {/* output */}
           <div ref={ref} className={`min-h-[60%] h-fit md:w-[60%] rounded-md ${getColorClass(selectedColor)} py-28 flex flex-col item-center justify-center`}>
             <div className="bg-white rounded-md shadow-lg px-6 py-4 w-[80%] min-h-36 h-fit md:w-3/5 mx-auto flex flex-col relative justify-start items-start">
