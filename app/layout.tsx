@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import Navbar from "@/components/blocks/Navbar";
+import { ClerkProvider } from '@clerk/nextjs'
+
 
 const inter = Jost({ subsets: ["latin"] });
 
@@ -16,14 +19,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Toaster
-          position="top-center"
-          reverseOrder={false}
-        />
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+          />
+          <Navbar />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

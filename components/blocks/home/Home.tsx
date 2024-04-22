@@ -3,7 +3,7 @@ import fetchData from "@/api/rapid_apis/tweet";
 import { formatNumber } from "@/utils/likes_number_converter"
 import Tweet_hero from "@/components/blocks/tweet/tweet-hero";
 import extract from "@/utils/tweet-id-extractor";
-import { useEffect, useRef, useState } from "react";
+import { useDebugValue, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { CiHeart } from "react-icons/ci";
 import { FaRegComment, FaTwitter } from "react-icons/fa";
@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import toast from "react-hot-toast";
+import { useUser } from "@clerk/nextjs";
+import axios from "axios";
 
 interface ContainerData {
   author?: {
@@ -35,30 +37,99 @@ interface ContainerData {
   created_at?: string;
 }
 
+interface UserDetail {
+  clerkId: string;
+  fullName: any;
+  email: string;
+}
+
+
 
 export default function Tweet() {
 
   const [tweetUrl, settweetUrl] = useState('');
   const [container, setcontainer] = useState<ContainerData>({});
+  const [userCreated, setUserCreated] = useState(false);
+  const [credits, setcredits] = useState(0);
   let id;
 
+
+  // get user
+  const { user } = useUser();
+  // console.log(user)
+
+
+  // adding user to db
+  useEffect(() => {
+    if (user && !userCreated) {
+      const userDetail: UserDetail = {
+        clerkId: user.id,
+        fullName: user.fullName,
+        email: user.emailAddresses[0].emailAddress
+      };
+
+      sessionStorage.setItem('localUser', JSON.stringify(userDetail)); // Use sessionStorage instead of localStorage
+
+      const createUserIfNotExists = async () => {
+        try {
+          const a = sessionStorage.getItem('localUser'); // Use sessionStorage instead of localStorage
+          if (a) {
+            const localUser = JSON.parse(a);
+            const res = await axios.post("api/create_user", localUser);
+            setUserCreated(true);
+          }
+        } catch (error) {
+          console.error('Error creating user:', error);
+        }
+      };
+
+      createUserIfNotExists();
+    }
+  }, [user, userCreated]);
+
+  // updating credits
+ 
+  const updateCredits = async () =>{
+    try {
+      if(user){
+        const updated = await axios.put(`api/update_credits?id=${user.id}`);
+        // console.log(updated)
+        setcredits(updated.data.user.credits)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const getData = async () => {
-    if(tweetUrl == ""){
-      toast.error("url should not be empty.");
+    if (!user) {
+      toast.error("Please create an account");
       return;
     }
-    toast('Generating...', {
-      icon: '😲',
-    });
-    id = extract(tweetUrl);
-    const result = await fetchData(id);
-    // console.log(result);
-    setcontainer(result)
-    settweetUrl("");
-    toast('Good Job! Check out the image', {
-      icon: '🥳',
-    });
-    // console.log(container)
+    if(credits<=0){
+      toast.error("You have not enough credits");
+      return;
+    }
+
+    if (credits > 0) {
+      if (tweetUrl == "") {
+        toast.error("url should not be empty.");
+        return;
+      }
+      toast('Generating...', {
+        icon: '😲',
+      });
+      id = extract(tweetUrl);
+      const result = await fetchData(id);
+      // console.log(result);
+      setcontainer(result)
+      settweetUrl("");
+      toast('Good Job! Check out the image', {
+        icon: '🥳',
+      });
+
+      updateCredits();
+    }
   }
 
 
@@ -92,7 +163,7 @@ export default function Tweet() {
       console.error("Ref is not yet initialized");
       return;
     }
-  
+
     toPng(ref.current, { cacheBust: false })
       .then((dataUrl) => {
         toast('Processing...just a sec', {
@@ -108,7 +179,28 @@ export default function Tweet() {
         console.error(err);
       });
   };
-  
+
+
+  // get credits
+  useEffect(() => {
+
+    const getCredits = async () => {
+      if (user) {
+        try {
+          const res = await axios.get(`api/get_user?id=${user.id}`)
+          // console.log(res.data.user.credits);
+          setcredits(res.data.user.credits);
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    }
+
+    getCredits();
+  }, [user])
+
+
+
 
 
 
@@ -119,13 +211,15 @@ export default function Tweet() {
         {/* importing hero */}
         <Tweet_hero />
 
+        <h1 className="text-sm text-slate-600">Credits : {credits} / 5</h1>
+
         {/* url input */}
         <form className="w-full flex items-center justify-center">
           <input className="border-2 w-1/2 px-3 py-2 text-xl placeholder:text-xl placeholder:text-gray-600 text-gray-900 rounded-xl shadow-lg" placeholder="tweet url..." value={tweetUrl} onChange={e => settweetUrl(e.target.value)} type="text" />
           <button onClick={(e) => {
             e.preventDefault();
             getData();
-          }} className="w-fit bg-blue-500 text-gray-100 px-4 py-2 rounded-xl mx-6 text-lg font-bold" type="submit">Convert</button>
+          }} className="w-fit hover:rounded-md hover:shadow-xl bg-blue-500 text-gray-100 px-4 py-2 rounded-xl mx-6 text-lg font-bold" type="submit">Convert</button>
         </form>
 
 
@@ -151,7 +245,7 @@ export default function Tweet() {
               </SelectContent>
             </Select>
 
-            <button onClick={htmlToImageConvert} className="w-fit bg-blue-500 text-gray-100 px-4 py-2 rounded-xl mx-6 text-lg font-bold" type="submit">Download</button>
+            <button onClick={htmlToImageConvert} className="w-fit hover:rounded-md hover:shadow-xl bg-blue-500 text-gray-100 px-4 py-2 rounded-xl mx-6 text-lg font-bold" type="submit">Download</button>
 
           </div>
 
@@ -169,8 +263,8 @@ export default function Tweet() {
                   </div>
                 </div>
               )
-              :
-              <div className="flex gap-3 items-center">
+                :
+                <div className="flex gap-3 items-center">
                   <Image className="rounded-full" height={50} width={50} src={'/man2.png'} alt="sample" />
                   <div>
                     <h4 className="font-bold text-xl inline">John Doe </h4>
@@ -179,17 +273,17 @@ export default function Tweet() {
                   </div>
                 </div>
               }
-              
+
 
               {container.text ? (
                 <div className="py-2 mt-4">
                   <p className="text-lg font-bold">{container.text}</p>
                 </div>
               )
-              :
-              <div className="py-2 mt-4">
+                :
+                <div className="py-2 mt-4">
                   <p className="text-lg font-bold">Use social canvas tool to convert your tweets to image.</p>
-              </div>
+                </div>
               }
 
               {container && container.media && container.media.photo && container.media.photo.length > 0 && (
