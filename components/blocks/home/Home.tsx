@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import toast from "react-hot-toast";
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, useUser } from "@clerk/nextjs";
 import axios from "axios";
 
 interface ContainerData {
@@ -88,10 +88,10 @@ export default function Tweet() {
   }, [user, userCreated]);
 
   // updating credits
- 
-  const updateCredits = async () =>{
+
+  const updateCredits = async () => {
     try {
-      if(user){
+      if (user) {
         const updated = await axios.put(`api/update_credits?id=${user.id}`);
         // console.log(updated)
         setcredits(updated.data.user.credits)
@@ -106,7 +106,7 @@ export default function Tweet() {
       toast.error("Please create an account");
       return;
     }
-    if(credits<=0){
+    if (credits <= 0) {
       toast.error("You have not enough credits");
       return;
     }
@@ -211,7 +211,9 @@ export default function Tweet() {
         {/* importing hero */}
         <Tweet_hero />
 
-        <h1 className="text-sm text-slate-600">Credits : {credits} / 5</h1>
+        <SignedIn>
+          <h1 className="text-sm text-slate-600">Credits : {credits} / 5</h1>
+        </SignedIn>
 
         {/* url input */}
         <form className="w-full flex items-center justify-center">
