@@ -19,6 +19,19 @@ import {
 import toast from "react-hot-toast";
 import { SignedIn, useUser } from "@clerk/nextjs";
 import axios from "axios";
+import { PayPalButton } from "react-paypal-button-v2";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
+
 
 interface ContainerData {
   author?: {
@@ -51,6 +64,7 @@ export default function Tweet() {
   const [container, setcontainer] = useState<ContainerData>({});
   const [userCreated, setUserCreated] = useState(false);
   const [credits, setcredits] = useState(0);
+  const [scriptLoaded, setscriptLoaded] = useState(false);
   let id;
 
 
@@ -200,8 +214,33 @@ export default function Tweet() {
   }, [user])
 
 
+  // paypal integration
 
+  const addPayPalScript = () => {
+    if (window.paypal) {
+      setscriptLoaded(true);
+      return
+    }
+    const script = document.createElement("script");
+    script.src = "https://www.paypal.com/sdk/js?client-id=Ab-Um6eMzNSgB0cZ2fjck-SoR9cr3_dRghpJbJwdAfTCZo5KDQKCNQRG5mGS99ZZbgGnPEhljnUrU4G6"
+    script.type = "text/javascript";
+    script.async = true;
+    script.onload = () => setscriptLoaded(true)
+    document.body.appendChild(script)
+  }
 
+  useEffect(() => {
+    addPayPalScript()
+  }, [])
+
+  // renew credits
+  const renew = async () => {
+    if (user) {
+      const res = axios.put(`api/renew_credits?id=${user.id}`);
+      setcredits(5);
+      toast.success("Credits recharged sucessfully");
+    }
+  }
 
 
   return (
@@ -212,8 +251,37 @@ export default function Tweet() {
         <Tweet_hero />
 
         <SignedIn>
-          <h1 className="text-sm text-slate-600">Credits : {credits} / 5</h1>
+          <div className="flex justify-around items-center gap-7">
+            <h1 className="text-sm text-slate-600">Credits : {credits} / 5</h1>
+
+            {
+              scriptLoaded && credits==0?
+                <Drawer>
+                  <DrawerTrigger>Buy credits</DrawerTrigger>
+                  <DrawerContent>
+                    <DrawerHeader>
+                      <DrawerTitle>Want more credits?</DrawerTitle>
+                      <DrawerDescription>Renew and get more 5 credits!</DrawerDescription>
+                      <PayPalButton
+                        amount={10}
+                        onSuccess={(details: any, data: any) => { console.log(details), renew() }}
+                      />
+                    </DrawerHeader>
+                    <DrawerFooter>
+                      {/* <Button>Continue</Button> */}
+                      {/* <DrawerClose>
+                        <Button variant="outline">Cancel</Button>
+                    </DrawerClose> */}
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
+                :
+                <span></span>
+            }
+
+          </div>
         </SignedIn>
+
 
         {/* url input */}
         <form className="w-full flex items-center justify-center">

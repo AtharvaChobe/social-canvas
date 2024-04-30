@@ -1,10 +1,5 @@
 import type { Config } from "tailwindcss"
-const defaultTheme = require("tailwindcss/defaultTheme");
-const colors = require("tailwindcss/colors");
-const {
-  default: flattenColorPalette,
-} = require("tailwindcss/lib/util/flattenColorPalette");
- 
+
 const config = {
   darkMode: ["class"],
   content: [
@@ -77,24 +72,9 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
-      aspectRatio: {
-        '4/3': '4 / 3',
-        '16/9':'16 / 9'
-      },
     },
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config
 
 export default config
-
-function addVariablesForColors({ addBase, theme }: any) {
-  let allColors = flattenColorPalette(theme("colors"));
-  let newVars = Object.fromEntries(
-    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
-  );
- 
-  addBase({
-    ":root": newVars,
-  });
-}
