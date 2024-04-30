@@ -19,7 +19,6 @@ import {
 import toast from "react-hot-toast";
 import { SignedIn, useUser } from "@clerk/nextjs";
 import axios from "axios";
-import { PayPalButton } from "react-paypal-button-v2";
 import {
   Drawer,
   DrawerClose,
@@ -216,22 +215,7 @@ export default function Tweet() {
 
   // paypal integration
 
-  const addPayPalScript = () => {
-    if (window.paypal) {
-      setscriptLoaded(true);
-      return
-    }
-    const script = document.createElement("script");
-    script.src = "https://www.paypal.com/sdk/js?client-id=Ab-Um6eMzNSgB0cZ2fjck-SoR9cr3_dRghpJbJwdAfTCZo5KDQKCNQRG5mGS99ZZbgGnPEhljnUrU4G6"
-    script.type = "text/javascript";
-    script.async = true;
-    script.onload = () => setscriptLoaded(true)
-    document.body.appendChild(script)
-  }
 
-  useEffect(() => {
-    addPayPalScript()
-  }, [])
 
   // renew credits
   const renew = async () => {
@@ -262,16 +246,13 @@ export default function Tweet() {
                     <DrawerHeader>
                       <DrawerTitle>Want more credits?</DrawerTitle>
                       <DrawerDescription>Renew and get more 5 credits!</DrawerDescription>
-                      <PayPalButton
-                        amount={10}
-                        onSuccess={(details: any, data: any) => { console.log(details), renew() }}
-                      />
+                      
                     </DrawerHeader>
                     <DrawerFooter>
-                      {/* <Button>Continue</Button> */}
-                      {/* <DrawerClose>
+                      <Button>Continue</Button>
+                      <DrawerClose>
                         <Button variant="outline">Cancel</Button>
-                    </DrawerClose> */}
+                    </DrawerClose>
                     </DrawerFooter>
                   </DrawerContent>
                 </Drawer>
